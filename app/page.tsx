@@ -1,89 +1,108 @@
 "use client";
 
-import Link from "next/link";
-import {
-  FaComments,
-  FaShieldHeart,
-  FaLocationDot,
-  FaBell,
-  FaArrowRight,
-  FaLock,
-} from "react-icons/fa6";
+import { FaFolder, FaIdCard, FaPills } from "react-icons/fa";
+import { ChatHeader } from "@/app/components/chat/chat-header";
+import { PrivacyNotice } from "@/app/components/chat/privacy-notice";
+import { DateDivider } from "@/app/components/chat/date-divider";
+import { UserMessage } from "@/app/components/chat/user-message";
+import { AssistantCard } from "@/app/components/chat/assistant-card";
+import { BulletList } from "@/app/components/chat/bullet-list";
+import { AlertBox } from "@/app/components/chat/alert-box";
+import { SourceCitation } from "@/app/components/chat/source-citation";
+import { RecommendedSteps } from "@/app/components/chat/recommended-steps";
+import { Checklist } from "@/app/components/chat/checklist";
+import { MessageSection } from "@/app/components/chat/message-section";
+import { MessageComposer } from "@/app/components/chat/message-composer";
 
-type ItemProps = {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-};
-
-function Item({ icon, title, description }: ItemProps) {
+export default function Page() {
   return (
-    <div className="flex items-start gap-4">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface-muted">
-        {icon}
+    <div className="mx-auto flex h-[calc(100dvh-4rem)] max-w-md flex-col">
+      <ChatHeader title="Saúde em Dia" subtitle="Assistente de saúde do SUS" />
+
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <PrivacyNotice message="Suas conversas são sigilosas e usadas para melhorar o serviço. Saiba mais." />
+
+        <DateDivider label="Hoje, 09:12" />
+
+        <UserMessage
+          text="Estou com dor na parte de baixo da barriga há 3 dias, o que pode ser?"
+          time="09:12"
+        />
+
+        <AssistantCard time="09:13">  
+          <p>
+            Entendo, Mariana. Dor na parte inferior da barriga pode ter
+            diversas causas.
+          </p>
+          <p>As mais comuns em mulheres na sua faixa etária incluem:</p>
+          <BulletList
+            items={[
+              "Cólicas menstruais",
+              "Ovulação (mittelschmerz)",
+              "Infecções urinárias",
+              "Infecções ginecológicas",
+              "Síndrome do intestino irritável",
+            ]}
+          />
+          <AlertBox
+            title="Sinais de alerta (procure urgência se tiver):"
+            items={[
+              "Dor muito forte e súbita",
+              "Febre alta",
+              "Sangramento intenso",
+              "Vômitos persistentes",
+              "Desmaio ou fraqueza",
+            ]}
+          />
+          <p>
+            Isso não substitui uma avaliação clínica. Se os sintomas
+            persistirem ou piorarem, procure uma unidade de saúde.
+          </p>
+          <SourceCitation source="Protocolo de Atenção à Saúde da Mulher – Ministério da Saúde (2022)" />
+        </AssistantCard>
+
+        <UserMessage text="Preciso ir a um hospital?" time="09:15" />
+
+        <AssistantCard variant="success" time="09:16">
+          <p className="text-foreground">
+            Pelo que você contou, não parece ser uma emergência.
+          </p>
+
+          <RecommendedSteps
+            title="O caminho recomendado é:"
+            steps={[
+              "UBS (Unidade Básica de Saúde) do seu território",
+              "Avaliação com enfermeiro(a) ou médico(a)",
+              "Se necessário, encaminhamento para exames ou especialista",
+            ]}
+          />
+
+          <hr className="border-success-border" />
+
+          <Checklist
+            title="Leve na consulta:"
+            items={[
+              { icon: FaFolder, label: "Cartão SUS" },
+              { icon: FaIdCard, label: "Documento com foto" },
+              { icon: FaPills, label: "Lista de medicamentos (se usa)" },
+            ]}
+          />
+
+          <hr className="border-success-border" />
+
+          <MessageSection title="O que esperar:">
+            <BulletList
+              items={[
+                "Acolhimento e escuta",
+                "Avaliação clínica",
+                "Conduta e orientações",
+              ]}
+            />
+          </MessageSection>
+        </AssistantCard>
       </div>
 
-      <div>
-        <h3 className="font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-foreground-muted">
-          {description}
-        </p>
-      </div>
+      <MessageComposer />
     </div>
-  );
-}
-
-export default function HomePage() {
-  return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
-      <div className="mx-auto flex max-w-md flex-col">
-        {/* Logo */}
-        <div className="mb-10 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg">
-            <FaComments className="text-4xl" />
-          </div>
-        </div>
-
-        {/* Cabeçalho */}
-        <section className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">
-            SUSI
-          </h1>
-
-          <p className="mt-2 text-lg text-foreground-muted">
-            Sistema Unificado de Saúde Inteligente
-          </p>
-
-          <p className="mx-auto mt-8 max-w-sm text-base leading-7 text-foreground-muted">
-            Converse, tire dúvidas, encontre unidades de saúde e receba
-            orientações baseadas em protocolos oficiais do SUS.
-          </p>
-        </section>
-
-        {/* Botão */}
-        <Link
-          href="/conversas"
-          className="mt-10 flex h-14 items-center justify-between rounded-2xl bg-primary px-6 text-primary-foreground shadow transition-transform active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <FaComments />
-            <span className="font-medium">Iniciar conversa</span>
-          </div>
-
-          <FaArrowRight />
-        </Link>
-
-        {/* Privacidade */}
-        <div className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
-          <FaLock className="mt-1 text-foreground-muted" />
-
-          <p className="text-sm leading-6 text-foreground-muted">
-            Suas conversas são sigilosas e utilizadas apenas para melhorar a
-            qualidade do serviço.
-          </p>
-        </div>
-
-      </div>
-    </main>
   );
 }

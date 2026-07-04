@@ -21,6 +21,12 @@
   --nav-bg: #ffffff;
   --nav-active: #b63cb2;
   --nav-inactive: #9a9aa8;
+
+  --success-accent: #2fae5f;
+  --success-accent-foreground: #ffffff;
+  --warning-bg: #fdeeee;
+  --warning-border: #f6cfcf;
+  --warning-foreground: #b23b3b;
 }
 
 .dark {
@@ -41,6 +47,13 @@
   --nav-bg: #1a1a22;
   --nav-active: #b63cb2;
   --nav-inactive: #6b6b7b;
+
+  --success-accent: #3cc776;
+  --success-accent-foreground: #0e1a12;
+  --warning-bg: #2e1a1a;
+  --warning-border: #4a2626;
+  --warning-foreground: #f19a9a;
+
 }
 
 @theme inline {
@@ -57,14 +70,22 @@
   --color-success-bg: var(--success-bg);
   --color-success-border: var(--success-border);
   --color-success-foreground: var(--success-foreground);
+  --color-success-accent: var(--success-accent);
+  --color-success-accent-foreground: var(--success-accent-foreground);
 
   --color-nav-bg: var(--nav-bg);
   --color-nav-active: var(--nav-active);
   --color-nav-inactive: var(--nav-inactive);
 
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-foreground: var(--warning-foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+
 
 body {
   background: var(--background);
