@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
+/* Ativa a variante `dark:` controlada por classe, em vez de prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f8;
+  --foreground: #1a1a2e;
+  --foreground-muted: #6b6b7b;
+  --border: #e5e5ec;
+
+  --primary: #6c5ce7;
+  --primary-foreground: #ffffff;
+
+  --success-bg: #eafaf0;
+  --success-border: #c8ecd6;
+  --success-foreground: #1f6e42;
+
+  --nav-bg: #ffffff;
+  --nav-active: #6c5ce7;
+  --nav-inactive: #9a9aa8;
+}
+
+.dark {
+  --background: #121218;
+  --surface: #1a1a22;
+  --surface-muted: #202029;
+  --foreground: #f0f0f5;
+  --foreground-muted: #9a9aa8;
+  --border: #2c2c38;
+
+  --primary: #8b7ff5;
+  --primary-foreground: #121218;
+
+  --success-bg: #163223;
+  --success-border: #1f4a30;
+  --success-foreground: #7fd9a0;
+
+  --nav-bg: #1a1a22;
+  --nav-active: #8b7ff5;
+  --nav-inactive: #6b6b7b;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-border: var(--border);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-nav-bg: var(--nav-bg);
+  --color-nav-active: var(--nav-active);
+  --color-nav-inactive: var(--nav-inactive);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
