@@ -1,6 +1,7 @@
-
+import { FaPhoneAlt } from "react-icons/fa";
 
 interface UnitCardProps {
+    index: number;
     name: string;
     address: string;
     contact: string;
@@ -8,17 +9,54 @@ interface UnitCardProps {
     office_hours: string;
 }
 
-const UnitCard = ({ name, address, contact, distance, office_hours }: UnitCardProps) => {
-    return (
-        <div className="border rounded-lg p-4 mb-4">
-            <h2 className="text-lg font-semibold">{name}</h2>
-            <p className="text-sm text-foreground-muted">{address}</p>
-            <p className="text-sm text-foreground-muted">Contato: {contact}</p>
-            <p className="text-sm text-foreground-muted">Distância: {distance}</p>
-            <p className="text-sm text-foreground-muted">Horário de funcionamento: {office_hours}</p>
+export const UnitCard = ({
+    index,
+    name,
+    address,
+    contact,
+    distance,
+    office_hours,
+}: UnitCardProps) => {
+return (
+    <div className="mb-3 rounded-xl border border-border bg-surface p-3">
+    <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-semibold text-primary">
+            {index}
+        </span>
+        <h2 className="text-sm font-semibold text-foreground">{name}</h2>
         </div>
+        <span className="shrink-0 text-xs text-foreground-muted">
+        {distance}
+        </span>
+    </div>
+
+    <p className="mt-1 text-xs leading-relaxed text-foreground-muted">
+        {address}
+    </p>
+
+    <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-xs text-foreground-muted">{office_hours}</p>
+
+        <div className="flex items-center gap-2">
         
-    );
+        <a
+            href={`tel:${contact}`}
+            aria-label={`Ligar para ${name}`}
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface text-foreground-muted transition-colors hover:bg-surface-muted"
+        >
+            <FaPhoneAlt size={12} />
+        </a>
+        <button
+            type="button"
+            className="h-8 rounded-md bg-primary/10 px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+        >
+            Ver rota
+        </button>
+        </div>
+    </div>
+    </div>
+);
 };
 
 export default UnitCard;

@@ -11,7 +11,7 @@
   --foreground-muted: #6b6b7b;
   --border: #e5e5ec;
 
-  --primary: #6c5ce7;
+  --primary: #e75ce2;
   --primary-foreground: #ffffff;
 
   --success-bg: #eafaf0;
@@ -19,7 +19,7 @@
   --success-foreground: #1f6e42;
 
   --nav-bg: #ffffff;
-  --nav-active: #6c5ce7;
+  --nav-active: #b63cb2;
   --nav-inactive: #9a9aa8;
 }
 
@@ -31,7 +31,7 @@
   --foreground-muted: #9a9aa8;
   --border: #2c2c38;
 
-  --primary: #8b7ff5;
+  --primary: #e75ce2;
   --primary-foreground: #121218;
 
   --success-bg: #163223;
@@ -39,7 +39,7 @@
   --success-foreground: #7fd9a0;
 
   --nav-bg: #1a1a22;
-  --nav-active: #8b7ff5;
+  --nav-active: #b63cb2;
   --nav-inactive: #6b6b7b;
 }
 
