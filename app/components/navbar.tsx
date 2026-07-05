@@ -12,7 +12,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Conversas", icon: FaCommentDots },
+  { href: "/conversas", label: "Conversas", icon: FaCommentDots },
   { href: "/unidades", label: "Unidades", icon: FaMapPin },
   { href: "/mais", label: "Mais", icon: FaBars },
 ];
@@ -27,8 +27,7 @@ export function Navbar() {
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-between px-2">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const isActive =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const isActive = pathname.startsWith(href);
 
           return (
             <li key={href} className="flex-1">
