@@ -21,6 +21,7 @@
   --nav-bg: #ffffff;
   --nav-active: #b63cb2;
   --nav-inactive: #9a9aa8;
+  --nav-active-pill: rgba(182, 60, 178, 0.1);
 
   --success-accent: #2fae5f;
   --success-accent-foreground: #ffffff;
@@ -47,6 +48,7 @@
   --nav-bg: #1a1a22;
   --nav-active: #b63cb2;
   --nav-inactive: #6b6b7b;
+  --nav-active-pill: rgba(182, 60, 178, 0.15);
 
   --success-accent: #3cc776;
   --success-accent-foreground: #0e1a12;
@@ -76,6 +78,7 @@
   --color-nav-bg: var(--nav-bg);
   --color-nav-active: var(--nav-active);
   --color-nav-inactive: var(--nav-inactive);
+  --color-nav-active-pill: var(--nav-active-pill);
 
   --color-warning-bg: var(--warning-bg);
   --color-warning-border: var(--warning-border);

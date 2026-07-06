@@ -6,6 +6,8 @@ import {
   FaAngleDoubleLeft,
   FaRegComment,
   FaPlus,
+  FaTimes,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { ThemeToggle } from "@/app/components/theme/theme-toggle";
 import { MessageBubble } from "./message-bubble";
@@ -14,6 +16,7 @@ import { useChat } from "./useChat";
 
 export default function Page() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
   const { messages, isLoading, error, scrollRef, sendMessage, clearMessages } =
     useChat();
 
@@ -38,7 +41,7 @@ export default function Page() {
         {isMenuOpen && (
           <div className="flex items-center gap-3">
             <button
-              onClick={clearMessages}
+              onClick={() => setShowNewChatConfirm(true)}
               className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors relative shadow-sm"
               title="Nova Conversa"
             >
@@ -86,6 +89,53 @@ export default function Page() {
 
       {/* Input Area */}
       <ChatInput onSend={sendMessage} disabled={isLoading} />
+
+      {/* Modal de confirmação - Nova Conversa */}
+      {showNewChatConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setShowNewChatConfirm(false)}
+          />
+          <div className="relative w-[90%] max-w-sm bg-background rounded-2xl p-6 shadow-2xl animate-slide-up">
+            <button
+              onClick={() => setShowNewChatConfirm(false)}
+              className="absolute top-3 right-3 text-foreground-muted hover:text-foreground transition-colors"
+            >
+              <FaTimes size={16} />
+            </button>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-warning-bg flex items-center justify-center mb-4">
+                <FaExclamationTriangle size={22} className="text-warning-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Nova conversa?
+              </h3>
+              <p className="text-sm text-foreground-muted mb-6 leading-relaxed">
+                A conversa atual será apagada e uma nova sessão será iniciada. Essa ação não pode ser desfeita.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowNewChatConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-border bg-surface text-foreground text-sm font-medium hover:bg-surface-muted transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    clearMessages();
+                    setShowNewChatConfirm(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-nav-active text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

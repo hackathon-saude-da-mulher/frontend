@@ -1,6 +1,6 @@
 "use client";
 
-import { FaMapPin, FaCommentDots, FaShieldAlt } from "react-icons/fa";
+import { TbMapPin, TbMessageCircle, TbShield } from "react-icons/tb";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
@@ -12,9 +12,9 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/conversas", label: "Conversas", icon: FaCommentDots },
-  { href: "/unidades", label: "Unidades", icon: FaMapPin },
-  { href: "/mais", label: "Sobre", icon: FaShieldAlt },
+  { href: "/unidades", label: "Unidades", icon: TbMapPin },
+  { href: "/conversas", label: "Conversas", icon: TbMessageCircle },
+  { href: "/mais", label: "Sobre", icon: TbShield },
 ];
 
 export function Navbar() {
@@ -34,7 +34,9 @@ export function Navbar() {
               <Link
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className="flex flex-col items-center gap-1 py-2 text-xs"
+                className={`flex flex-col items-center gap-1 py-2 px-3 text-xs rounded-[18px] ${
+                  isActive ? "bg-nav-active-pill" : ""
+                }`}
               >
                 <Icon
                   size={22}
