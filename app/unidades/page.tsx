@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaChevronLeft,
@@ -8,54 +9,32 @@ import {
   FaMapMarkerAlt,
 } from "react-icons/fa";
 import UnitCard from "@/app/components/unitCard/unitCard";
-
-const units = [
-  {
-    name: "UBS Vila Madalena",
-    address: "R. Girassol, 123 – Vila Madalena, São Paulo - SP",
-    contact: "(11) 1234-5678",
-    distance: "450 m",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-  {
-    name: "UBS Sumaré",
-    address: "R. Heitor Penteado, 246 – Sumaré, São Paulo - SP",
-    contact: "(11) 9876-5432",
-    distance: "1,2 km",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-  {
-    name: "UBS Alto de Pinheiros",
-    address: "R. Cerro Corá, 555 – Alto de Pinheiros, São Paulo - SP",
-    contact: "(11) 5555-5555",
-    distance: "1,8 km",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-  {
-    name: "UBS Vila Nova Conceição",
-    address: "R. Girassol, 123 – Vila Madalena, São Paulo - SP",
-    contact: "(11) 1234-5678",
-    distance: "2 km",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-  {
-    name: "UBS São Vicente",
-    address: "R. Heitor Penteado, 246 – Sumaré, São Paulo - SP",
-    contact: "(11) 9876-5432",
-    distance: "2,5 km",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-  {
-    name: "UBS Morumbi",
-    address: "R. Cerro Corá, 555 – Alto de Pinheiros, São Paulo - SP",
-    contact: "(11) 5555-5555",
-    distance: "3 km",
-    office_hours: "Seg a Sex: 7h às 19h",
-  },
-];
+import { useUnidades } from "./useUnidades";
 
 export default function Page() {
   const router = useRouter();
+  const {
+    ubs,
+    hospitals,
+    locationLabel,
+    isLoading,
+    error,
+    useMyLocation,
+    useCep,
+    refresh,
+  } = useUnidades();
+  const [showCepForm, setShowCepForm] = useState(false);
+  const [cep, setCep] = useState("");
+
+  const units = [...ubs, ...hospitals];
+
+  function handleCepSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = cep.replace(/\D/g, "");
+    if (digits.length !== 8) return;
+    setShowCepForm(false);
+    useCep(digits);
+  }
 
   return (
     <div className="mx-auto flex max-w-md flex-col">
@@ -75,9 +54,11 @@ export default function Page() {
         <button
           type="button"
           aria-label="Atualizar localização"
-          className="flex h-8 w-8 items-center justify-center text-primary"
+          onClick={() => refresh()}
+          disabled={isLoading}
+          className="flex h-8 w-8 items-center justify-center text-primary disabled:opacity-50"
         >
-          <FaSyncAlt size={15} />
+          <FaSyncAlt size={15} className={isLoading ? "animate-spin" : ""} />
         </button>
       </header>
 
@@ -88,14 +69,44 @@ export default function Page() {
             Mostrando unidades perto de
           </p>
           <p className="text-sm font-semibold text-foreground">
-            Vila Madalena, São Paulo - SP
+            {locationLabel ?? "Localização não definida"}
           </p>
-          <button
-            type="button"
-            className="mt-1 text-sm font-medium text-primary hover:underline"
-          >
-            Trocar localização
-          </button>
+          <div className="mt-1 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={useMyLocation}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Usar minha localização
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCepForm((prev) => !prev)}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Informar CEP
+            </button>
+          </div>
+
+          {showCepForm && (
+            <form onSubmit={handleCepSubmit} className="mt-2 flex gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="00000000"
+                maxLength={8}
+                value={cep}
+                onChange={(e) => setCep(e.target.value)}
+                className="flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-foreground outline-none"
+              />
+              <button
+                type="submit"
+                className="rounded-md bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20"
+              >
+                Buscar
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Placeholder de mapa */}
@@ -116,10 +127,36 @@ export default function Page() {
           />
         </div>
 
+        {error && (
+          <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        {isLoading && units.length === 0 && !error && (
+          <p className="py-6 text-center text-sm text-foreground-muted">
+            Buscando unidades próximas...
+          </p>
+        )}
+
+        {!isLoading && units.length === 0 && !error && (
+          <p className="py-6 text-center text-sm text-foreground-muted">
+            Nenhuma unidade encontrada perto de você.
+          </p>
+        )}
+
         {/* Lista de unidades */}
         <div className="flex flex-col">
           {units.map((unit, i) => (
-            <UnitCard key={unit.name} index={i + 1} {...unit} />
+            <UnitCard
+              key={unit.key}
+              index={i + 1}
+              name={unit.name}
+              address={unit.address}
+              distance={unit.distance}
+              latitude={unit.latitude}
+              longitude={unit.longitude}
+            />
           ))}
         </div>
 
