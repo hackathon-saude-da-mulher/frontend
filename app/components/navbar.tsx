@@ -1,6 +1,6 @@
 "use client";
 
-import { FaHome, FaMapPin, FaCommentDots, FaBars } from "react-icons/fa";
+import { FaMapPin, FaCommentDots, FaShieldAlt } from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType } from "react";
@@ -14,7 +14,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/conversas", label: "Conversas", icon: FaCommentDots },
   { href: "/unidades", label: "Unidades", icon: FaMapPin },
-  { href: "/mais", label: "Mais", icon: FaBars },
+  { href: "/mais", label: "Sobre", icon: FaShieldAlt },
 ];
 
 export function Navbar() {
