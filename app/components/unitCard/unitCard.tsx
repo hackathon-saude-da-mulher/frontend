@@ -4,9 +4,11 @@ interface UnitCardProps {
     index: number;
     name: string;
     address: string;
-    contact: string;
+    contact?: string;
     distance: string;
-    office_hours: string;
+    office_hours?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 export const UnitCard = ({
@@ -16,7 +18,13 @@ export const UnitCard = ({
     contact,
     distance,
     office_hours,
+    latitude,
+    longitude,
 }: UnitCardProps) => {
+    const routeUrl =
+        latitude !== undefined && longitude !== undefined
+            ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
+            : undefined;
 return (
     <div className="mb-3 rounded-xl border border-border bg-surface p-3">
     <div className="flex items-center justify-between gap-2">
@@ -36,10 +44,11 @@ return (
     </p>
 
     <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="text-xs text-foreground-muted">{office_hours}</p>
+        <p className="text-xs text-foreground-muted">{office_hours ?? ""}</p>
 
         <div className="flex items-center gap-2">
-        
+
+        {contact && (
         <a
             href={`tel:${contact}`}
             aria-label={`Ligar para ${name}`}
@@ -47,12 +56,25 @@ return (
         >
             <FaPhoneAlt size={12} />
         </a>
+        )}
+        {routeUrl ? (
+        <a
+            href={routeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-8 flex items-center rounded-md bg-primary/10 px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+        >
+            Ver rota
+        </a>
+        ) : (
         <button
             type="button"
-            className="h-8 rounded-md bg-primary/10 px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+            disabled
+            className="h-8 rounded-md bg-primary/10 px-3 text-xs font-medium text-primary opacity-50"
         >
             Ver rota
         </button>
+        )}
         </div>
     </div>
     </div>
