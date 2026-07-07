@@ -33,6 +33,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [audioState, setAudioState] = useState<AudioState>("idle");
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,6 +42,8 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   const isRecording = audioState === "recording";
   const isPreview = audioState === "preview";
@@ -62,6 +65,17 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   useEffect(() => {
     return () => stopTimer();
   }, [stopTimer]);
+
+  const releasePreviewUrl = useCallback(() => {
+    previewAudioRef.current?.pause();
+    previewAudioRef.current = null;
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => releasePreviewUrl, [releasePreviewUrl]);
 
   const isBusy = disabled || isTranscribing;
 
@@ -133,12 +147,39 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   }
 
   function handlePlayPause() {
-    setIsPlaying((prev) => !prev);
+    if (!blobRef.current) return;
+
+    let audio = previewAudioRef.current;
+    if (!audio) {
+      const url = URL.createObjectURL(blobRef.current);
+      previewUrlRef.current = url;
+      audio = new Audio(url);
+      previewAudioRef.current = audio;
+      audio.addEventListener("timeupdate", () => {
+        if (audio!.duration) {
+          setPlaybackProgress(audio!.currentTime / audio!.duration);
+        }
+      });
+      audio.addEventListener("ended", () => {
+        setIsPlaying(false);
+        setPlaybackProgress(0);
+      });
+    }
+
+    if (audio.paused) {
+      audio.play();
+      setIsPlaying(true);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
   }
 
   function handleDelete() {
     blobRef.current = null;
+    releasePreviewUrl();
     setIsPlaying(false);
+    setPlaybackProgress(0);
     setDuration(0);
     setAudioState("idle");
   }
@@ -146,7 +187,9 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   async function handleSendAudio() {
     const blob = blobRef.current;
     blobRef.current = null;
+    releasePreviewUrl();
     setIsPlaying(false);
+    setPlaybackProgress(0);
     setDuration(0);
     setAudioState("idle");
     if (!blob) return;
@@ -175,6 +218,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             state={audioState}
             duration={duration}
             isPlaying={isPlaying}
+            playbackProgress={playbackProgress}
             onStartRecording={handleStartRecording}
             onStopRecording={handleStopRecording}
             onPlayPause={handlePlayPause}
@@ -195,6 +239,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             state={audioState}
             duration={duration}
             isPlaying={isPlaying}
+            playbackProgress={playbackProgress}
             onStartRecording={handleStartRecording}
             onStopRecording={handleStopRecording}
             onPlayPause={handlePlayPause}
@@ -227,6 +272,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
                 state={audioState}
                 duration={duration}
                 isPlaying={isPlaying}
+                playbackProgress={playbackProgress}
                 onStartRecording={handleStartRecording}
                 onStopRecording={handleStopRecording}
                 onPlayPause={handlePlayPause}

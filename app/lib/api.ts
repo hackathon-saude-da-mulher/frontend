@@ -23,10 +23,13 @@ async function extractErrorMessage(res: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const isFormData = init?.body instanceof FormData;
   const res = await fetch(apiUrl(path), {
     ...init,
     headers: {
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      ...(init?.body && !isFormData
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...init?.headers,
     },
   });
@@ -36,7 +39,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    return (await res.json()) as T;
+  }
+  return (await res.blob()) as T;
+}
+
+export function isStaleSessionError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 404;
 }
 
 export interface UBSResult {
@@ -86,15 +98,16 @@ export async function transcribeAudio(blob: Blob): Promise<string> {
   const formData = new FormData();
   formData.append("audio", blob, "audio.ogg");
 
-  const res = await fetch(apiUrl("/voice/transcribe"), {
+  const data = await request<{ text: string }>("/voice/transcribe", {
     method: "POST",
     body: formData,
   });
-
-  if (!res.ok) {
-    throw new ApiError(await extractErrorMessage(res), res.status);
-  }
-
-  const data = (await res.json()) as { text: string };
   return data.text;
+}
+
+export async function synthesizeSpeech(text: string): Promise<Blob> {
+  return request<Blob>("/voice/speech", {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
 }

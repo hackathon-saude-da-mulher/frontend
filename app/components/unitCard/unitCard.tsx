@@ -11,7 +11,7 @@ interface UnitCardProps {
     longitude?: number;
 }
 
-export const UnitCard = ({
+const UnitCard = ({
     index,
     name,
     address,

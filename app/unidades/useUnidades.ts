@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getUnidadesProximas,
+  isStaleSessionError,
   postLocation,
   UBSResult,
 } from "@/app/lib/api";
@@ -45,7 +46,8 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
 }
 
 export function useUnidades() {
-  const { sessionId, isLoading: isSessionLoading } = useSession();
+  const { sessionId, isLoading: isSessionLoading, renewSession } =
+    useSession();
   const [ubs, setUbs] = useState<UnitViewModel[]>([]);
   const [hospitals, setHospitals] = useState<UnitViewModel[]>([]);
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
@@ -53,14 +55,98 @@ export function useUnidades() {
   const [error, setError] = useState<string | null>(null);
   const [hasLocation, setHasLocation] = useState(false);
 
-  const fetchUnidades = useCallback(async () => {
+  const fetchUnidades = useCallback(
+    async (id: string) => {
+      try {
+        const data = await getUnidadesProximas(id);
+        setUbs(data.ubs.map(toViewModel));
+        setHospitals(data.hospitals.map(toViewModel));
+      } catch (err) {
+        if (isStaleSessionError(err)) {
+          const renewedId = await renewSession();
+          if (renewedId) {
+            setHasLocation(false);
+            return;
+          }
+        }
+        throw err;
+      }
+    },
+    [renewSession],
+  );
+
+  const locateByGeolocation = useCallback(async () => {
     if (!sessionId) return;
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getUnidadesProximas(sessionId);
-      setUbs(data.ubs.map(toViewModel));
-      setHospitals(data.hospitals.map(toViewModel));
+      const position = await getCurrentPosition();
+      const { latitude, longitude } = position.coords;
+      try {
+        await postLocation(sessionId, { latitude, longitude });
+      } catch (err) {
+        if (isStaleSessionError(err) && (await renewSession())) {
+          setHasLocation(false);
+          return;
+        }
+        throw err;
+      }
+      setHasLocation(true);
+      setLocationLabel(
+        `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+      );
+      await fetchUnidades(sessionId);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível obter sua localização.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sessionId, fetchUnidades, renewSession]);
+
+  const locateByCep = useCallback(
+    async (cep: string) => {
+      if (!sessionId) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        try {
+          await postLocation(sessionId, { cep });
+        } catch (err) {
+          if (isStaleSessionError(err) && (await renewSession())) {
+            setHasLocation(false);
+            return;
+          }
+          throw err;
+        }
+        setHasLocation(true);
+        setLocationLabel(cep);
+        await fetchUnidades(sessionId);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "CEP inválido.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sessionId, fetchUnidades, renewSession],
+  );
+
+  useEffect(() => {
+    if (!isSessionLoading && sessionId && !hasLocation) {
+      locateByGeolocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSessionLoading, sessionId]);
+
+  const refresh = useCallback(async () => {
+    if (!sessionId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetchUnidades(sessionId);
     } catch (err) {
       setError(
         err instanceof Error
@@ -70,57 +156,7 @@ export function useUnidades() {
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId]);
-
-  const useMyLocation = useCallback(async () => {
-    if (!sessionId) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const position = await getCurrentPosition();
-      const { latitude, longitude } = position.coords;
-      await postLocation(sessionId, { latitude, longitude });
-      setHasLocation(true);
-      setLocationLabel(
-        `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-      );
-      await fetchUnidades();
-    } catch (err) {
-      setIsLoading(false);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível obter sua localização.",
-      );
-    }
   }, [sessionId, fetchUnidades]);
-
-  const useCep = useCallback(
-    async (cep: string) => {
-      if (!sessionId) return;
-      setIsLoading(true);
-      setError(null);
-      try {
-        await postLocation(sessionId, { cep });
-        setHasLocation(true);
-        setLocationLabel(cep);
-        await fetchUnidades();
-      } catch (err) {
-        setIsLoading(false);
-        setError(
-          err instanceof Error ? err.message : "CEP inválido.",
-        );
-      }
-    },
-    [sessionId, fetchUnidades],
-  );
-
-  useEffect(() => {
-    if (!isSessionLoading && sessionId && !hasLocation) {
-      useMyLocation();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSessionLoading, sessionId]);
 
   return {
     ubs,
@@ -129,8 +165,8 @@ export function useUnidades() {
     isLoading: isLoading || isSessionLoading,
     error,
     hasLocation,
-    useMyLocation,
-    useCep,
-    refresh: fetchUnidades,
+    locateByGeolocation,
+    locateByCep,
+    refresh,
   };
 }
