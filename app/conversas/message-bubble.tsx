@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { FaPause, FaVolumeUp } from "react-icons/fa";
+import { FaPause, FaVolumeUp, FaSpinner } from "react-icons/fa";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Message } from "./types";
 import { synthesizeSpeech } from "@/app/lib/api";
 
@@ -56,7 +58,15 @@ export function MessageBubble({ message }: { message: Message }) {
             : "bg-surface-muted text-foreground border border-border rounded-bl-md"
         }`}
       >
-        <p>{message.content}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <div className="markdown-body space-y-2 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-2">
           <p
             className={`text-[10px] ${
@@ -74,9 +84,26 @@ export function MessageBubble({ message }: { message: Message }) {
               onClick={handleToggleSpeech}
               disabled={isLoadingSpeech}
               aria-label={isSpeaking ? "Pausar leitura" : "Ouvir mensagem"}
-              className="text-foreground-muted hover:text-foreground transition-colors disabled:opacity-50"
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-60 ${
+                isSpeaking
+                  ? "bg-nav-active text-white"
+                  : "bg-nav-active/10 text-nav-active hover:bg-nav-active/20"
+              }`}
             >
-              {isSpeaking ? <FaPause size={10} /> : <FaVolumeUp size={10} />}
+              {isLoadingSpeech ? (
+                <FaSpinner size={11} className="animate-spin" />
+              ) : isSpeaking ? (
+                <FaPause size={11} />
+              ) : (
+                <FaVolumeUp size={11} />
+              )}
+              <span>
+                {isLoadingSpeech
+                  ? "Gerando..."
+                  : isSpeaking
+                    ? "Pausar"
+                    : "Ouvir"}
+              </span>
             </button>
           )}
         </div>
