@@ -16,6 +16,7 @@ interface AudioRecorderProps {
   state: AudioState;
   duration: number;
   isPlaying: boolean;
+  playbackProgress?: number;
   onStartRecording: () => void;
   onStopRecording: () => void;
   onPlayPause: () => void;
@@ -63,6 +64,7 @@ export function AudioRecorder({
   state,
   duration,
   isPlaying,
+  playbackProgress = 0,
   onStartRecording,
   onStopRecording,
   onPlayPause,
@@ -118,7 +120,10 @@ export function AudioRecorder({
 
       <div className="flex items-center gap-2.5 flex-1 min-w-0">
         <div className="flex-1 h-[3px] bg-surface-muted rounded-full overflow-hidden">
-          <div className="h-full bg-nav-active rounded-full w-0 transition-all duration-300" />
+          <div
+            className="h-full bg-nav-active rounded-full transition-all duration-150"
+            style={{ width: `${Math.min(playbackProgress, 1) * 100}%` }}
+          />
         </div>
         <span className="text-[10px] text-foreground-muted font-mono tabular-nums whitespace-nowrap select-none">
           {formatTime(duration)}

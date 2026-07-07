@@ -19,8 +19,8 @@ export default function Page() {
     locationLabel,
     isLoading,
     error,
-    useMyLocation,
-    useCep,
+    locateByGeolocation,
+    locateByCep,
     refresh,
   } = useUnidades();
   const [showCepForm, setShowCepForm] = useState(false);
@@ -33,7 +33,7 @@ export default function Page() {
     const digits = cep.replace(/\D/g, "");
     if (digits.length !== 8) return;
     setShowCepForm(false);
-    useCep(digits);
+    locateByCep(digits);
   }
 
   return (
@@ -74,7 +74,7 @@ export default function Page() {
           <div className="mt-1 flex items-center gap-3">
             <button
               type="button"
-              onClick={useMyLocation}
+              onClick={locateByGeolocation}
               className="text-sm font-medium text-primary hover:underline"
             >
               Usar minha localização

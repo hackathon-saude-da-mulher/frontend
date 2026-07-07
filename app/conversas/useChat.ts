@@ -5,6 +5,8 @@ import { Message } from "./types";
 import { wsUrl } from "@/app/lib/config";
 import { useSession } from "@/app/lib/session-context";
 
+const STALE_SESSION_ERROR = "stale_session";
+
 function generateId() {
   return Math.random().toString(36).substring(2, 10);
 }
@@ -15,7 +17,7 @@ type ServerEvent =
   | { type: "error"; message: string };
 
 export function useChat() {
-  const { sessionId } = useSession();
+  const { sessionId, renewSession } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,18 +49,34 @@ export function useChat() {
       const socket = new WebSocket(
         wsUrl(`/ws/chat?session_id=${encodeURIComponent(sessionId)}`),
       );
+      let opened = false;
 
       socket.onopen = () => {
+        opened = true;
         socketRef.current = socket;
         resolve(socket);
       };
 
-      socket.onerror = () => {
-        reject(new Error("Não foi possível conectar ao assistente."));
-      };
+      // A handshake rejection (e.g. unknown session_id) surfaces here first,
+      // but the browser hides the server's real close code/reason in that
+      // case — only `onclose` (always fired after) is reliable to act on.
+      socket.onerror = () => {};
 
       socket.onclose = () => {
         if (socketRef.current === socket) socketRef.current = null;
+        if (opened) return;
+
+        // The connection never opened — most likely a stale/unknown
+        // session_id. Try renewing the session so the caller can retry once.
+        renewSession().then((renewedId) => {
+          reject(
+            new Error(
+              renewedId
+                ? STALE_SESSION_ERROR
+                : "Não foi possível conectar ao assistente.",
+            ),
+          );
+        });
       };
 
       socket.onmessage = (event) => {
@@ -89,7 +107,7 @@ export function useChat() {
         }
       };
     });
-  }, [sessionId]);
+  }, [sessionId, renewSession]);
 
   useEffect(() => {
     return () => {
@@ -111,7 +129,16 @@ export function useChat() {
       setIsLoading(true);
 
       try {
-        const socket = await ensureSocket();
+        let socket: WebSocket;
+        try {
+          socket = await ensureSocket();
+        } catch (err) {
+          if (err instanceof Error && err.message === STALE_SESSION_ERROR) {
+            socket = await ensureSocket();
+          } else {
+            throw err;
+          }
+        }
 
         const assistantMessage: Message = {
           id: generateId(),
