@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react";
 import { Message } from "./types";
 import { wsUrl } from "@/app/lib/config";
 import { useSession } from "@/app/lib/session-context";
@@ -16,7 +23,26 @@ type ServerEvent =
   | { type: "done" }
   | { type: "error"; message: string };
 
+interface ChatContextValue {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  sendMessage: (content: string) => Promise<void>;
+  clearMessages: () => void;
+}
+
+const ChatContext = createContext<ChatContextValue | null>(null);
+
 export function useChat() {
+  const ctx = useContext(ChatContext);
+  if (!ctx) {
+    throw new Error("useChat must be used within a ChatProvider");
+  }
+  return ctx;
+}
+
+export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { sessionId, renewSession } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -171,12 +197,11 @@ export function useChat() {
     assistantIdRef.current = null;
   }
 
-  return {
-    messages,
-    isLoading,
-    error,
-    scrollRef,
-    sendMessage,
-    clearMessages,
-  };
+  return (
+    <ChatContext.Provider
+      value={{ messages, isLoading, error, scrollRef, sendMessage, clearMessages }}
+    >
+      {children}
+    </ChatContext.Provider>
+  );
 }

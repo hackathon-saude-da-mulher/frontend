@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/app/components/theme/theme-provider";
 import { Navbar } from "@/app/components/navbar";
 import { SessionProvider } from "@/app/lib/session-context";
+import { ChatProvider } from "@/app/conversas/useChat";
 import { ServiceWorkerRegister } from "@/app/components/service-worker-register";
 
 const geistSans = Geist({
@@ -49,8 +50,10 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <ThemeProvider>
           <SessionProvider>
-            <main className="flex-1 pb-16">{children}</main>
-            <Navbar />
+            <ChatProvider>
+              <main className="flex-1 pb-16">{children}</main>
+              <Navbar />
+            </ChatProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

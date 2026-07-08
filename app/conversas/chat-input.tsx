@@ -256,7 +256,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
               onKeyDown={handleKeyDown}
               placeholder="Pergunte sobre saúde, sintomas ou postos de atendimento"
               disabled={isBusy}
-              className="flex-1 bg-transparent border-none outline-none text-[12px] pl-4 pr-2 py-3 text-foreground placeholder:text-foreground-muted resize-none overflow-y-auto leading-relaxed disabled:opacity-50"
+              className="flex-1 bg-transparent border-none outline-none text-[12px] pl-4 pr-2 py-3 text-foreground placeholder:text-foreground-muted placeholder:truncate resize-none overflow-y-auto leading-relaxed disabled:opacity-50"
             />
             <div className="h-6 w-px bg-border mx-2 self-center" />
             {value.trim() ? (
