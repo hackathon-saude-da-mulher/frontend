@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Susi — Frontend
 
-## Getting Started
+Interface web do **Susi**, assistente de saúde da mulher do SUS. Permite conversar
+com o agente (texto ou voz), receber respostas fundamentadas em conteúdo oficial e
+encontrar unidades de atendimento (UBS e hospitais) próximas.
 
-First, run the development server:
+É um app **mobile-first** e **instalável (PWA)**, construído com Next.js (App Router),
+React 19 e Tailwind CSS v4.
+
+> ⚠️ Esta é uma versão do Next.js com mudanças relevantes de convenção. Antes de
+> alterar código, consulte os guias em `node_modules/next/dist/docs/` (ver
+> [`AGENTS.md`](./AGENTS.md)).
+
+## Funcionalidades
+
+- **Chat com o agente** (`/conversas`) — conversa por WebSocket com streaming das
+  respostas, renderizadas em Markdown. Cada resposta do assistente pode ser ouvida
+  em áudio (text-to-speech).
+- **Entrada por voz** — gravação de áudio no chat, transcrita pelo backend
+  (speech-to-text) e enviada como mensagem.
+- **Banner de localização** — na tela inicial do chat, oferece definir a localização
+  (geolocalização do navegador ou CEP) para que o agente recomende unidades próximas.
+- **Unidades próximas** (`/unidades`) — lista de UBS e hospitais ordenados por
+  distância, com link de rota no Google Maps. Localização por GPS ou CEP.
+- **Sobre** (`/mais`) — privacidade/LGPD, termos de uso e telefones de emergência.
+- **Tema claro/escuro** e **PWA** (instalável na tela inicial, com página offline).
+
+## Requisitos
+
+- Node.js 20+
+- [Yarn](https://yarnpkg.com/) (o repositório usa `yarn.lock`)
+- O [backend](../backend) rodando (padrão: `http://localhost:8000`) — fornece as
+  APIs de sessão, chat (WebSocket), localização, unidades e voz.
+
+## Configuração
+
+A URL do backend é configurável via variável de ambiente. Sem ela, o padrão é
+`http://localhost:8000` (ver [`app/lib/config.ts`](./app/lib/config.ts)). A URL do
+WebSocket é derivada automaticamente (`http` → `ws`).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# .env.local (opcional)
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Como rodar
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn install          # instala dependências
+yarn dev              # servidor de desenvolvimento em http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abra [http://localhost:3000](http://localhost:3000). O chat fica em
+[`/conversas`](http://localhost:3000/conversas).
 
-## Learn More
+Para rodar **backend e frontend juntos**, use o script na raiz do repositório:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+../run.sh             # sobe backend (:8000) e frontend (:3000)
+../run.sh --install   # instala dependências dos dois antes de subir
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Comando       | Descrição                                    |
+|---------------|----------------------------------------------|
+| `yarn dev`    | Servidor de desenvolvimento (hot reload)     |
+| `yarn build`  | Build de produção                            |
+| `yarn start`  | Sobe o build de produção                     |
+| `yarn lint`   | ESLint                                        |
 
-## Deploy on Vercel
+## Integração com o backend
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+O cliente HTTP/WebSocket fica em [`app/lib/api.ts`](./app/lib/api.ts). Endpoints usados:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Endpoint                          | Uso no frontend                                    |
+|-----------------------------------|----------------------------------------------------|
+| `POST /session`                   | Cria a sessão anônima (persistida em localStorage) |
+| `WS /ws/chat?session_id=…`        | Chat com streaming (`chunk` / `done` / `error`)    |
+| `POST /location`                  | Define a localização da sessão (lat/long ou CEP)   |
+| `GET /unidades-proximas`          | Lista UBS e hospitais próximos                     |
+| `POST /voice/transcribe`          | Transcreve áudio gravado (fala → texto)            |
+| `POST /voice/speech`              | Sintetiza áudio da resposta (texto → fala)         |
+
+A sessão é anônima e criada automaticamente no primeiro acesso
+([`app/lib/session-context.tsx`](./app/lib/session-context.tsx)). Como o backend
+mantém o estado em memória, ao reiniciá-lo o frontend renova a sessão
+automaticamente quando detecta uma sessão obsoleta.
+
+## Estrutura
+
+```
+app/
+  conversas/        Chat: página, hook (useChat), input, bolhas, gravador de áudio,
+                    banner de localização
+  unidades/         Lista de unidades próximas (página + useUnidades)
+  mais/             Sobre, privacidade/LGPD, termos, emergência
+  offline/          Página exibida offline (PWA)
+  components/       Navbar, tema, cartão de unidade, registro do service worker
+  lib/              api, config, contexto de sessão, helpers de localização
+  manifest.ts       Web App Manifest (PWA)
+public/
+  sw.js             Service worker (cache do shell + fallback offline)
+  icon-*.png        Ícones do PWA
+```
+
+## PWA
+
+A aplicação é instalável: manifesto em [`app/manifest.ts`](./app/manifest.ts) e
+service worker em [`public/sw.js`](./public/sw.js) (precache do shell, navegação
+_network-first_ com fallback para `/offline`; chamadas à API/WebSocket nunca são
+cacheadas). O service worker exige **HTTPS** (ou `localhost`) para registrar.
+
+## Stack
+
+- Next.js 16 (App Router) · React 19 · TypeScript
+- Tailwind CSS v4 · `next-themes` (tema claro/escuro) · `react-icons`
+- `react-markdown` + `remark-gfm` (renderização das respostas)
