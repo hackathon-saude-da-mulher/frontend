@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/app/components/theme/theme-provider";
 import { Navbar } from "@/app/components/navbar";
 import { SessionProvider } from "@/app/lib/session-context";
+import { ServiceWorkerRegister } from "@/app/components/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Susi – Saúde em Dia",
   title: "Saúde em Dia",
   description: "Assistente de saúde do SUS",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Susi",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#121218" },
+  ],
 };
 
 export default function RootLayout({
@@ -32,6 +46,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ServiceWorkerRegister />
         <ThemeProvider>
           <SessionProvider>
             <main className="flex-1 pb-16">{children}</main>
