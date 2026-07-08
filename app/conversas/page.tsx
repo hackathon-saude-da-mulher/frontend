@@ -12,13 +12,24 @@ import {
 import { ThemeToggle } from "@/app/components/theme/theme-toggle";
 import { MessageBubble } from "./message-bubble";
 import { ChatInput } from "./chat-input";
+import { LocationBanner } from "./location-banner";
 import { useChat } from "./useChat";
+import { useSession } from "@/app/lib/session-context";
+import { hasLocationSet } from "@/app/lib/location";
 
 export default function Page() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
+  const [locationDismissed, setLocationDismissed] = useState(false);
+  const { sessionId } = useSession();
   const { messages, isLoading, error, scrollRef, sendMessage, clearMessages } =
     useChat();
+
+  const showLocationBanner =
+    !!sessionId &&
+    !locationDismissed &&
+    messages.length === 0 &&
+    !hasLocationSet(sessionId);
 
   return (
     <div className="mx-auto flex max-w-md flex-col h-[calc(100vh-64px)] px-4 bg-background relative">
@@ -39,7 +50,7 @@ export default function Page() {
         </button>
 
         {isMenuOpen && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 animate-slide-in-left">
             <button
               onClick={() => setShowNewChatConfirm(true)}
               className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-foreground-muted hover:text-foreground transition-colors relative shadow-sm"
@@ -85,6 +96,11 @@ export default function Page() {
         <div className="mb-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
           {error}
         </div>
+      )}
+
+      {/* Banner de localização (só na tela inicial, se ainda não definida) */}
+      {showLocationBanner && (
+        <LocationBanner onDone={() => setLocationDismissed(true)} />
       )}
 
       {/* Input Area */}

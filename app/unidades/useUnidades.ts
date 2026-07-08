@@ -8,6 +8,7 @@ import {
   UBSResult,
 } from "@/app/lib/api";
 import { useSession } from "@/app/lib/session-context";
+import { markLocationSet } from "@/app/lib/location";
 
 export interface UnitViewModel {
   key: string;
@@ -92,6 +93,7 @@ export function useUnidades() {
         throw err;
       }
       setHasLocation(true);
+      markLocationSet(sessionId);
       setLocationLabel(
         `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
       );
@@ -123,6 +125,7 @@ export function useUnidades() {
           throw err;
         }
         setHasLocation(true);
+        markLocationSet(sessionId);
         setLocationLabel(cep);
         await fetchUnidades(sessionId);
       } catch (err) {
