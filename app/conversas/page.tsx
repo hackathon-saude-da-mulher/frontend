@@ -21,7 +21,7 @@ export default function Page() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
   const [locationDismissed, setLocationDismissed] = useState(false);
-  const { sessionId } = useSession();
+  const { sessionId, renewSession } = useSession();
   const { messages, isLoading, error, scrollRef, sendMessage, clearMessages } =
     useChat();
 
@@ -141,6 +141,7 @@ export default function Page() {
                 <button
                   onClick={() => {
                     clearMessages();
+                    renewSession();
                     setShowNewChatConfirm(false);
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-nav-active text-white text-sm font-medium hover:opacity-90 transition-opacity"
