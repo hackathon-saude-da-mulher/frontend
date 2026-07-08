@@ -5,10 +5,8 @@ WORKDIR /app
 
 # ---- deps ----
 FROM base AS deps
-COPY package.json package-lock.json* yarn.lock* ./
-RUN if [ -f package-lock.json ]; then npm ci; \
-    elif [ -f yarn.lock ]; then corepack enable && yarn install --frozen-lockfile; \
-    else npm install; fi
+COPY package.json yarn.lock ./
+RUN corepack enable && yarn install --frozen-lockfile
 
 # ---- build ----
 FROM base AS builder
@@ -20,7 +18,7 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN corepack enable && yarn build
 
 # ---- runtime ----
 FROM base AS runner
