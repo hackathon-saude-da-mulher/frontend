@@ -22,6 +22,7 @@ export function getCurrentPosition(): Promise<GeolocationPosition> {
 }
 
 export function markLocationSet(sessionId: string): void {
+  if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(LOCATION_SET_PREFIX + sessionId, "1");
   } catch {
@@ -30,6 +31,7 @@ export function markLocationSet(sessionId: string): void {
 }
 
 export function hasLocationSet(sessionId: string): boolean {
+  if (typeof window === "undefined") return false;
   try {
     return window.localStorage.getItem(LOCATION_SET_PREFIX + sessionId) === "1";
   } catch {
