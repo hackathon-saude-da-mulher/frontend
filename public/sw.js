@@ -68,6 +68,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Avoid caching programmatic fetch/XHR calls (often API JSON) even if same-origin.
+  if (request.destination === "") return;
+
   // Static assets: cache-first, populate the cache on first fetch.
   event.respondWith(
     (async () => {
