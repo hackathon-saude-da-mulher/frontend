@@ -46,12 +46,22 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const fresh = await fetch(request);
-          const cache = await caches.open(CACHE);
-          cache.put(request, fresh.clone());
+          if (fresh.ok) {
+            const cache = await caches.open(CACHE);
+            cache.put(request, fresh.clone());
+          }
           return fresh;
         } catch {
           const cached = await caches.match(request);
-          return cached ?? (await caches.match(OFFLINE_URL));
+          const offline = await caches.match(OFFLINE_URL);
+          return (
+            cached ??
+            offline ??
+            new Response("Offline", {
+              status: 503,
+              headers: { "Content-Type": "text/plain; charset=utf-8" },
+            })
+          );
         }
       })(),
     );
